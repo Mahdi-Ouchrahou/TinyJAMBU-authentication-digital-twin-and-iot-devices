@@ -1,0 +1,40 @@
+{
+  "targetActorSelection": "/system/sharding/connection",
+  "headers": {
+    "aggregate": false
+  },
+  "piggybackCommand": {
+    "type": "connectivity.commands:createConnection",
+    "connection": {
+      "id": "mqtt-authentication-target",
+      "connectionType": "mqtt",
+      "connectionStatus": "open",
+      "failoverEnabled": true,
+      "uri": "tcp://192.168.0.174:1883",
+      "targets": [
+        {
+          "address": "dtAuthData/{{ thing:id }}",
+          "topics": [
+            "_/_/things/twin/events",
+            "_/_/things/live/messages"
+          ],
+          "qos": 0,
+          "authorizationContext": ["nginx:ditto"],
+          "headerMapping": {},
+          "payloadMapping": [
+            "javascript"
+          ]
+        }
+      ],
+      "mappingContext": {
+        "mappingEngine": "JavaScript",
+        "options": {
+          "incomingScript": "function mapToDittoProtocolMsg(headers, textPayload, bytePayload, contentType) {}",
+          "outgoingScript": "function mapFromDittoProtocolMsg(namespace, id, group, channel, criterion, action, path, dittoHeaders, value, status, extra) {}",
+          "loadBytebufferJS": "false",
+          "loadLongJS": "false"
+        }
+      }
+    }
+  }
+}

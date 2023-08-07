@@ -1,0 +1,38 @@
+{
+  "targetActorSelection": "/system/sharding/connection",
+  "headers": {
+    "aggregate": false
+  },
+  "piggybackCommand": {
+    "type": "connectivity.commands:createConnection",
+    "connection": {
+      "id": "data-connection-source",
+      "connectionType": "mqtt",
+      "connectionStatus": "open",
+      "failoverEnabled": true,
+      "uri": "tcp://192.168.0.174:1883",
+      "sources": [
+        {
+          "addresses": [
+            "datatopic"
+          ],
+          "authorizationContext": [
+            "nginx:ditto"
+          ],
+          "qos": 0,
+          "filters": []
+        }
+      ],
+      "mappingContext": {
+        "mappingEngine": "JavaScript",
+        "options": {
+          "incomingScript": "function mapToDittoProtocolMsg(headers, textPayload, bytePayload, contentType) {\n    const jsonString = String.fromCharCode.apply(null, new Uint8Array(bytePayload));\n    const jsonData = JSON.parse(jsonString);\n    const thingId = jsonData.thingId.split(':');\n    const value = {\n        measurements: {\n            properties: {\n                temperature: jsonData.temperature,\n                humidity: jsonData.humidity\n            }\n        }\n    };\n    return Ditto.buildDittoProtocolMsg(thingId[0], thingId[1], 'things', 'twin', 'commands', 'modify', '/features', headers, value);\n}",
+          "outgoingScript": "function mapFromDittoProtocolMsg(namespace, id, group, channel, criterion, action, path, dittoHeaders, value, status, extra) {\n    return null;\n}",
+          "loadBytebufferJS": "false",
+          "loadLongJS": "false"
+        }
+      }
+    }
+  }
+}
+

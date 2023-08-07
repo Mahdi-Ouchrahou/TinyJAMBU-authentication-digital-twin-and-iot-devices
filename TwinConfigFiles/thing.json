@@ -1,0 +1,19 @@
+{
+  "thingId": "sensors:authenticated",
+  "policyId": "thesis:policy",
+  "attributes": {
+    "type": "DH11",
+    "serial_number": "100",
+    "psk": "0",
+    "nonce": "0",
+    "state": "false"
+  },
+  "features": {
+    "measurements": {
+      "properties": {
+        "temperature": 0,
+        "humidity": 0
+      }
+    }
+  }
+}

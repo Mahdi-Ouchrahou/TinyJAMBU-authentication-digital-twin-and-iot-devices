@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+
+</head>
+
+<body class="mt-5">
+
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Authentication mechanism using TinyJAMBU between DTs (Eclipse Ditto) and
+                IoT devices.</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#siteNav"
+                aria-controls="siteNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="siteNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <button class="btn btn-outline-info" id="configure" data-toggle="modal"
+                            data-target="#configureModal">Configure</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="content" class="container">
+        <div class="row mb-3">
+            <div class="col mt-5">
+                <h3>Attributes</h3>
+                <div class="card">
+                    <div class="card-body">
+                        <dl id="deviceInfo">
+                            <!-- Add placeholders for device information -->
+                            <dt>Device Type:</dt>
+                            <dd id="type">N/A</dd>
+                            <dt>Serial Number:</dt>
+                            <dd id="serial_number">N/A</dd>
+                            <dt>PSK:</dt>
+                            <dd id="psk">N/A</dd>
+                            <dt>Nonce:</dt>
+                            <dd id="nonce">N/A</dd>
+
+                            <dt>State:</dt>
+                            <dd id="state">N/A</dd>
+
+                        </dl>
+                        <button type="button" id="generatePSKButton" class="btn btn-primary">Generate PSK</button>
+                        <button id="generateNonceButton" type="button" class="btn btn-primary">Generate Nonce</button>
+                        <hr>
+                        <button type="button" id="sendpsk" class="btn btn-primary">Send the generated PSK to the
+                            sensor.</button>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <h3>Features</h3>
+
+                <div id="stateTrueMessage" class="alert alert-success" style="display:none;">
+                    <h4>The device is authenticated and ready for data retrieval. A new data Connection have been
+                        created and the Digital Twin state is being updated.</h4>
+                </div>
+                <div id="sensorReadyMessage" class="alert alert-info" style="display:none;">
+                    <h5>If you wish to close the current connection with the sensor, press the below button to delete
+                        the connection. </h5>
+                    <button id="deleteconnection" class="btn btn-primary"
+                        style="display:none;background-color: red;">Delete Connection</button>
+                </div>
+
+                <div class="card-deck">
+                    <div class="card">
+                        <h5 class="card-title"></h5>
+                        <div class="card-body">
+                            <h1 class="card-title">
+                                <span id="temperatureValue">N/A</span>
+                            </h1>
+                            <h6 class="card-subtitle mb-2 text-muted">Temperature</h6>
+                            <h1 class="card-title">
+                                <span id="humidityValue">N/A</span>
+                            </h1>
+                            <h6 class="card-subtitle mb-2 text-muted">Humidity</h6>
+
+                            <div class="form-row">
+                                <div class="form-group col-auto">
+                                    <input type="text" class="form-control" id="messageToSensor"
+                                        placeholder="Enter message to send to sensor">
+                                </div>
+                                <div class="form-group col-auto">
+                                    <button id="sendMessageToSensor" type="button" class="btn btn-primary">Send
+                                        Message</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row mb-3">
+            <div class="col">
+                <div id="alerts">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Message box container (hidden by default) -->
+    <div id="messageBoxContainer" class="container" style="display: none;">
+        <div class="row">
+            <div class="col mt-5">
+                <div class="alert alert-success" role="alert">
+                    <h4 class="alert-heading">Cipher and Tag Received!</h4>
+                    <p>A cipher and tag have been received for the first time.</p>
+                    <hr>
+                    <p class="mb-0">Click "Download" to get the files.</p>
+                    <button type="button" id="cancelButton" class="btn btn-primary mt-3">cancel</button>
+                    <button type="button" id="DownloadButton" class="btn btn-primary mt-3">download</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="configureModal" tabindex="-1" role="dialog" aria-labelledby="configureModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="configureModalLabel">Configuration</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="container">
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="dittoUrl">URL</label>
+                                <input type="text" class="form-control" id="dittoUrl"
+                                    placeholder="http://localhost:8080">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="dittoUser">User</label>
+                                <input type="text" class="form-control" id="dittoUser" value="ditto">
+                            </div>
+                            <div class="col mb-3">
+                                <label for="dittoPassword">Password</label>
+                                <input type="password" class="form-control" id="dittoPassword" value="ditto">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="dittoThingId">Thing ID</label>
+                                <input type="text" class="form-control" id="dittoThingId">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label class="form-check-label">
+                                    <input type="checkbox" class="form-check-input" id="useSSE"> Use server sent events
+                                    (update interval will be ignored).
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="refreshInterval">Update interval (ms)</label>
+                                <input type="text" class="form-control" id="refreshInterval" value="3">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveChanges">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/popper.js/dist/umd/popper.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>

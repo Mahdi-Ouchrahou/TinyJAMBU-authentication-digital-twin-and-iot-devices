@@ -1,0 +1,60 @@
+
+{
+  "targetActorSelection": "/system/sharding/connection",
+  "headers": {
+    "aggregate": false
+  },
+  "piggybackCommand": {
+    "type": "connectivity.commands:createConnection",
+    "connection": {
+      "id": "mqtt-authentication-source",
+      "connectionType": "mqtt",
+      "connectionStatus": "open",
+      "failoverEnabled": true,
+      "uri": "tcp://192.168.0.174:1883",
+  "sources": [
+    {
+      "addresses": [
+        "deviceAuthData"
+      ],
+      "consumerCount": 1,
+      "qos": 0,
+      "authorizationContext": [
+        "nginx:ditto"
+      ],
+      "headerMapping": {},
+      "payloadMapping": [
+        "javascript"
+      ],
+      "replyTarget": {
+        "address": "{{header:reply-to}}",
+        "headerMapping": {},
+        "expectedResponseTypes": [
+          "response",
+          "error"
+        ],
+        "enabled": true
+      }
+    }
+  ],
+  "targets": [],
+  "clientCount": 1,
+  "validateCertificates": true,
+  "processorPoolSize": 1,
+  "mappingDefinitions": {
+    "javascript": {
+      "mappingEngine": "JavaScript",
+      "options": {
+        "incomingScript": "function mapToDittoProtocolMsg(headers, textPayload, bytePayload, contentType) {\n    const jsonString = String.fromCharCode.apply(null, new Uint8Array(bytePayload));\n    const jsonData = JSON.parse(jsonString);\n\n    // Extract the values from the JSON data\n    const auth_cipher_hex = jsonData.auth_cipher;\n    const auth_tag_hex = jsonData.auth_tag;\n\n    // Prepare the Ditto protocol messages for each attribute\n    const thingId = jsonData.thingId.split(':');\n    const messages = [];\n\n    // Create a message for the \"auth_cipher\" attribute\n    const auth_cipherMessage = Ditto.buildDittoProtocolMsg(\n        thingId[0], // your namespace\n        thingId[1],\n        'things', // we deal with a thing\n        'twin', // we want to update the twin\n        'commands', // create a command to update the twin\n        'modify', // modify the twin\n        '/attributes/auth_cipher', // modify the \"auth_cipher\" attribute\n        headers,\n        auth_cipher_hex // Use the auth_cipher_hex directly (it is already a string)\n    );\n    messages.push(auth_cipherMessage);\n\n    // Create a message for the \"auth_tag\" attribute\n    const tagMessage = Ditto.buildDittoProtocolMsg(\n        thingId[0], // your namespace\n        thingId[1],\n        'things', // we deal with a thing\n        'twin', // we want to update the twin\n        'commands', // create a command to update the twin\n        'modify', // modify the twin\n        '/attributes/auth_tag', // modify the \"auth_tag\" attribute\n        headers,\n        auth_tag_hex // Use the auth_tag_hex directly (it is already a string)\n    );\n    messages.push(tagMessage);\n\n    // Return the array of Ditto protocol messages for each attribute\n    return messages;\n}\n",
+        "outgoingScript": "function mapFromDittoProtocolMsg(namespace, id, group, channel, criterion, action, path, dittoHeaders, value, status, extra) {}",
+        "loadBytebufferJS": "false",
+        "loadLongJS": "false"
+      }
+    }
+  },
+  "tags": []
+    }
+  }
+}
+
+
