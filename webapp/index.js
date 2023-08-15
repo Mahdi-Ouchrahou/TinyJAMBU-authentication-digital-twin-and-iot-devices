@@ -22,7 +22,7 @@ class App {
         window.crypto.getRandomValues(array);
         return array;
     }
-//function used to make the post request to send messages to the digital twin
+    //function used to make the post request to send messages to the digital twin
     sendMessageToThing(thingId, messageSubject, messagePayload, timeout = 0, successCallback, errorCallback) {
         const url = `${this.baseUrl}/api/2/things/${thingId}/inbox/messages/${encodeURIComponent(messageSubject)}?timeout=${timeout}`;
         const authHeader = `Basic ${btoa(`${this.username}:${this.password}`)}`;
@@ -34,10 +34,10 @@ class App {
             url: url,
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json', 
+                'Content-Type': 'application/json',
                 Authorization: authHeader,
             },
-            data: JSON.stringify(jsonPayload), 
+            data: JSON.stringify(jsonPayload),
             success: () => {
                 this.pushLog('success', `Message sent successfully`);
                 if (typeof successCallback === 'function') {
@@ -61,7 +61,7 @@ class App {
     }
 
 
-//this function is called when the button to delete a connection is clicked, it makes the appropriate post request to delete the data connection 
+    //this function is called when the button to delete a connection is clicked, it makes the appropriate post request to delete the data connection 
     async deleteconnection() {
         const postUrl = 'http://localhost:8080/devops/piggyback/connectivity?timeout=10';
         const postUsername = 'devops';
@@ -110,7 +110,7 @@ class App {
 
                 // Check if the "state" attribute is set to true 
                 if (data && data.state && data.state === true) {
-                    
+
                     this.enableAutoRefresh(true);
 
                     // If the "state" attribute is true, proceed with the feature request
@@ -167,7 +167,7 @@ class App {
         );
     }
 
-//function to display download interface and button 
+    //function to display download interface and button 
     downloadFiles(cipher, tag, key, nonce, thingID) {
         // Function to show the message box with the button for download
         const messageBoxContainer = document.getElementById("messageBoxContainer");
@@ -187,7 +187,7 @@ class App {
         };
     }
 
-//function to dowanload files from the browser 
+    //function to dowanload files from the browser 
     triggerDownload(content, fileName) {
         // Create a Blob from the content
         const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
@@ -213,7 +213,7 @@ class App {
         $('#configureModal').modal('hide');
     }
 
-// function that is called once the button to send a message is clicked
+    // function that is called once the button to send a message is clicked
     onSendMessage() {
         const message = $('#messageToSensor').val();
         if (message) {
@@ -247,7 +247,7 @@ class App {
         }
     }
 
-//this function is trigerred when the send PSK and Nonce butto is clicked 
+    //this function is trigerred when the send PSK and Nonce butto is clicked 
     sendAllAttributesToThing() {
         if (this.deviceData && this.deviceData.psk && this.deviceData.nonce) {
             const thingId = this.thingId;
@@ -280,7 +280,7 @@ class App {
         }
     }
 
-//
+    //
     sendauthstatus() {
         if (this.deviceData && this.deviceData.state) {
             const thingId = this.thingId;
@@ -333,7 +333,7 @@ class App {
         }
     }
 
-//function using the Ditto API to extract thing attributes 
+    //function using the Ditto API to extract thing attributes 
     requestGetAttributes(success, error) {
         $.getJSON(`${this.baseUrl}/api/2/things/${this.thingId}`, {
             fields: 'attributes'
@@ -345,7 +345,7 @@ class App {
                 success(data.attributes, textStatus, jqXHR);
             });
     }
-//function using the Ditto API to extract thing features
+    //function using the Ditto API to extract thing features
     requestGetFeature(featureId, success, error) {
         $.getJSON(`${this.baseUrl}/api/2/things/${this.thingId}/features/${featureId}`)
             .done((data, textStatus, jqXHR) => {
@@ -358,7 +358,7 @@ class App {
             });
     }
 
-//function to set the attribute PSK of the thing to a new value using the Ditto API 
+    //function to set the attribute PSK of the thing to a new value using the Ditto API 
     requestSetPSK(data, success, error) {
         const jsonPayload = {
             psk: data
@@ -379,8 +379,43 @@ class App {
                 success(data, textStatus, jqXHR);
             });
     }
+    resetstate(sucess, error) {
+        const jsonPayload = "false"
+        $.ajax({
+            type: 'PUT',
+            url: `${this.baseUrl}/api/2/things/${this.thingId}/attributes/state`,
+            data: JSON.stringify(jsonPayload),
+            contentType: 'application/json',
+            headers: {
+                'Authorization': 'Basic ' + btoa(`${this.username}:${this.password}`)
+            }
+        })
+            .fail((jqXHR, textStatus, errorThrown) => {
+                error(jqXHR, textStatus, errorThrown);
+            })
+            .done((data, textStatus, jqXHR) => {
+                success(data, textStatus, jqXHR);
+            });
+    }
+    deleteAtt(attributeName, success, error) {
 
-//function to set the attribute Nonce of the thing to a new value using the Ditto API 
+        $.ajax({
+            type: 'DELETE',
+            url: `${this.baseUrl}/api/2/things/${this.thingId}/attributes/${attributeName}`,
+            contentType: 'application/json',
+            headers: {
+                'Authorization': 'Basic ' + btoa(`${this.username}:${this.password}`)
+            }
+        })
+            .done((data, textStatus, jqXHR) => {
+                success(data, textStatus, jqXHR);
+            })
+            .fail((jqXHR, textStatus, errorThrown) => {
+                error(jqXHR, textStatus, errorThrown);
+            });
+    }
+
+    //function to set the attribute Nonce of the thing to a new value using the Ditto API 
     requestSetnonce(data, success, error) {
         const jsonPayload = {
             nonce: data
@@ -444,7 +479,7 @@ class App {
             }
         }
     }
-//function to update the UI with appropriate temperature and humidity values 
+    //function to update the UI with appropriate temperature and humidity values 
     updateTemperatureHumidity(properties) {
         if (properties && properties.temperature) {
             $('#temperatureValue').html(`<span>${properties.temperature} °C</span>`);
@@ -454,7 +489,7 @@ class App {
         }
     }
 
-//function triggered when updating PSK 
+    //function triggered when updating PSK 
     updatePSK() {
         const pskLengthBytes = 16; // 128 bits
         const newPSKValue = this.generateRandomBytes(pskLengthBytes);
@@ -499,8 +534,8 @@ class App {
         );
     }
 
- 
-  //function triggered when updating Nonce
+
+    //function triggered when updating Nonce
     updatenonce() {
         const nonceLengthBytes = 12; // 96 bits
         const newNonceValue = this.generateRandomBytes(nonceLengthBytes);
@@ -545,7 +580,7 @@ class App {
     }
 
 
-//function responsible of updating the UI with appropriate device attributes 
+    //function responsible of updating the UI with appropriate device attributes 
     updateDeviceInfo(data, textStatus, jqXHR) {
         const deviceInfoList = $("#deviceInfo"); // Get the <dl> element
         const deviceInfoItems = deviceInfoList.find("dd"); // Get the <dd> elements within the <dl>
@@ -636,6 +671,36 @@ class App {
         });
         $('#deleteconnection').click(() => {
             this.deleteconnection();
+
+            this.deleteAtt('auth_cipher',
+                (data, textStatus, jqXHR) => {
+                    // Attribute deleted successfully
+                    console.log('Attribute deleted:', data);
+                },
+                (jqXHR, textStatus, errorThrown) => {
+                    // Error deleting attribute
+                    console.error('Error deleting attribute:', errorThrown);
+                }
+            );
+            this.deleteAtt('auth_tag',
+                (data, textStatus, jqXHR) => {
+                    // Attribute deleted successfully
+                    console.log('Attribute deleted:', data);
+                },
+                (jqXHR, textStatus, errorThrown) => {
+                    // Error deleting attribute
+                    console.error('Error deleting attribute:', errorThrown);
+                }
+            );
+
+            this.resetstate(
+                (data, textStatus, jqXHR) => {
+                    console.log('resetstate successful:', data);
+                },
+                (jqXHR, textStatus, errorThrown) => {
+                    console.error('resetstate error:', errorThrown);
+                }
+            );
             console.log("post request clicked");
         });
 

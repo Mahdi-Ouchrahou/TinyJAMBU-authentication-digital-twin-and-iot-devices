@@ -7,6 +7,29 @@ from base64 import b64encode
 import requests
 import paho.mqtt.client as mqtt
 
+execution_times = {}
+
+def measure_execution_time(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        execution_times[func.__name__] = execution_time
+        
+        # Write execution time to a log file
+        with open("execution_times.log", "a") as log_file:
+            log_file.write(f"{func.__name__}: {execution_time:.6f} seconds\n")
+        
+        print(f"{func.__name__} execution time: {execution_time:.6f} seconds")
+        return result
+    return wrapper
+
+
+@measure_execution_time
+def decrypt_and_verify(key, nonce, tag, cipher):
+    decrypted_result, is_verified = tinyjambu.decrypt(key, nonce, tag, b"", cipher)
+    return decrypted_result, is_verified
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -17,7 +40,13 @@ def on_connect(client, userdata, flags, rc):
 def on_publish(client, userdata, mid):
     print(f"Published message with MID: {mid}")
 
+@measure_execution_time
+def publish_authentication_result(client, message):
+    client.publish("dtAuthData/sensors:authenticated", message)
+
+
 #function to create the data connection source to update the device state with appropriate sensor data 
+@measure_execution_time
 def create_connection():
     base_url = 'http://localhost:8080/devops/piggyback/connectivity?timeout=10'
     username = 'devops'
@@ -36,6 +65,7 @@ def create_connection():
         print("Error creating the connection:", e)
 
 #update the 'state' attribute the value of "true"
+@measure_execution_time
 def update_attribute(attribute_name, data):
     base_url = 'http://localhost:8080'
     username = 'ditto'
@@ -142,7 +172,7 @@ def main():
         print("Tag:", tag_bytearray)
         print("Associated Data:", b"")
         print("Cipher:", cipherinbytes)
-        decrypted_result, is_verified = tinyjambu.decrypt(key_bytes, nonce_bytes, tag_bytearray, b"", cipherinbytes)
+        decrypted_result, is_verified = decrypt_and_verify(key_bytes, nonce_bytes, tag_bytearray, cipherinbytes)
     except Exception as e:
         print(f"Error occurred during decryption: {e}")
         return
@@ -175,7 +205,8 @@ def main():
 
         # Publish the auth_result message to the specified topic
         print("Publishing authentication result: true")
-        client.publish("dtAuthData/sensors:authenticated", auth_result_message_json)
+        publish_authentication_result(client, auth_result_message_json)
+
 
         # Disconnect from the MQTT broker
         client.disconnect()
@@ -198,11 +229,14 @@ def main():
 
         # Publish the auth_result message to the specified topic
         print("Publishing authentication result: false")
-        client.publish("dtAuthData/sensors:authenticated", auth_result_message_json)
+        publish_authentication_result(client, auth_result_message_json)
 
         # Disconnect from the MQTT broker
         client.disconnect()
         print("Disconnected from MQTT broker.")
+    
+    with open("execution_times.json", "w") as json_file:
+        json.dump(execution_times, json_file)
 
     
 if __name__ == "__main__":

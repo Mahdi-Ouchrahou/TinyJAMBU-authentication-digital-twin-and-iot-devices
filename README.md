@@ -32,7 +32,9 @@ This project aim at porviding a novel authentication scheme to authenticate IoT 
 │   ├── TinyJAMBU.py  #Main implementation file, contain both encrypt() and decrypt() fucntions
 │   ├── utility.py    #Basic utility functions used by tinyjambu 
 │   ├── methods.py    #Main methods used by the tinyJAMBU algorithm, implemented following the official paper documentation. 
-│   └── check_auth.py #Main python code that decrypts received cipher and confirm or deny authentication.
+│   ├── AuthenticationTwinSide.py   #Main python code that decrypts received cipher and confirms or denies authentication.
+│   ├── data_conn_source.json  #Configuration file to create a connection source for state update   
+│   └── data_conn_target.json  #Configuration file to create a connection target for state update 
 ├── Webapp/           #Web application directory 
 │   ├── node_modules/ 
 │   ├── index.js      #Main web application code
@@ -43,13 +45,13 @@ This project aim at porviding a novel authentication scheme to authenticate IoT 
 │   ├── policy.json            #Configuration file to create a policy 
 │   ├── thing.json             #Configuration file to create a thing (digital twin) 
 │   ├── auth_conn_source.json  #Configuration file to create a connection source for authentication  
-│   ├── auth_conn_target.json  #Configuration file to create a connection target for authentication  
-│   ├── data_conn_source.json  #Configuration file to create a connection source for state update   
-│   └── data_conn_target.json  #Configuration file to create a connection target for state update 
+│   └── auth_conn_target.json  #Configuration file to create a connection target for authentication  
 ├── RaspberryFiles/
-│   ├── UpdateTwinState.py     #Python code to retreive sensor data and publish it to appropriate MQTT topic
-│   └── GenerateCipherTag.py   #Python code to generate the cipher and the tag in the device side
+│   ├── TinyJAMBU/
+│   ├── AuthenticationDeviceSide.py   #Python code to retrieve sensor data and publish it to the appropriate MQTT topic
+│   └── RetreivePublishSensorData.py   #Python code to generate the cipher and the tag on the device side
 └── README.md
+
 
 ```
 
@@ -90,7 +92,7 @@ This section will go through the necesarry set up in order to show through an ex
     curl -X PUT 'http://localhost:8080/api/2/policies/thesis:policy' -u 'ditto:ditto' -H 'Content-Type: application/json' -d policy.json
     ```
     ```
-    curl -X PUT 'http://localhost:8080/api/2/things/msensors:authenticated' -u 'ditto:ditto' -H 'Content-Type: application/json' -d thing.json
+    curl -X PUT 'http://localhost:8080/api/2/things/sensors:authenticated' -u 'ditto:ditto' -H 'Content-Type: application/json' -d thing.json
     ```
     ```
     curl -X PUT 'http://localhost:8080/devops/piggyback/connectivity?timeout=10000' -u 'devops:foobar' -H 'Content-Type: application/json' -d auth_conn_source.json
@@ -111,7 +113,7 @@ This section will go through the necesarry set up in order to show through an ex
 
 ### Authentication mechanism: 
 Below I will descibe how the authentication is ensured using the developed scheme via an example authetication of our DH11 sensor and the Digital Twin before exchanging the data : 
-1. In a terminal of the Raspberry Pi, run the `authentication-device-side.py` file. The scipt will listen on an MQTT topic for a Key and a Nonce necessary for the encryption to be sent from the digital twin. 
+1. In a terminal of the Raspberry Pi, run the `AuthenticationDeviceSide.py` file. The scipt will listen on an MQTT topic for a Key and a Nonce necessary for the encryption to be sent from the digital twin. 
 ```
 python3 authentication-device-side.py
 ```
@@ -121,7 +123,7 @@ python3 authentication-device-side.py
 >It is important to note that the authentication message must match the thingID created in Eclipse Ditto, otherwise even if the tag is matching, the authentication will fail. 
 [second screenshot of the device script] (assets/device_script_main_run.png)
 
-4. In a terminal in the local machine, open the `TinyJAMBU/` directory and run `authentication-twin-side.py`. The script will wait for necessary data to check the authentication.
+4. In a terminal in the local machine, open the `TinyJAMBU/` directory and run `AuthenticationTwinSide.py`. The script will wait for necessary data to check the authentication.
 ```
 cd TinyJAMBU
 python3 authentication-twin-side.py
@@ -130,19 +132,20 @@ python3 authentication-twin-side.py
 [download prompt](assets/download_prompt.png)
 6. Upon download, the script use the tinyJAMBU implementation to decrypt the cipher and check authentication. Authentication is confirmed only if two conditions hold: the tags are matching, the decrypted authentication cipher matches the ThingID declared earlier. 
 7. Upon successful authentication, the script first modifies the `state` attribute to the value "true" meaning that the device is authenticated, then it creates two new MQTT connections that will be used to update twin state direcly from the sensor device and to receive live messages from the twin. The script will also send a confirmation message back to the sensor using the authentication target connection. 
-> Upon succesful authentication, `authentication-twin-side.py` script, the Ditto Connections and the Thing Attributes will look like this: 
+> Upon succesful authentication, `AuthenticationTwinSide.py` script, the Ditto Connections and the Thing Attributes will look like this: 
 [Twin script](assets/twin_script.png)
 [attributes from ditto ui] (assets/attributes_ui.png)
 [connections from ditto ui] (assets/connections_ui.png)
 
 
-8. Upon reception of a success message, the script in the raspberry will continuously gather sensor data and publish it to the appropriate MQTT topic. Thus, the state of the Twin will be updated as new data messages are published to the topic. 
+8. Upon reception of a success message, the `AuthenticationDeviceSide.py` script in the raspberry will use the `RetreivePublishSensorData.py` script to continuously gather sensor data and publish it to the appropriate MQTT topic. Thus, the state of the Twin will be updated as new data messages are published to the topic. 
 [final device scipt](assets/device_script_final_run.png)
 
 9. Back in the WebUI, upon successful authentication, the Thing attributes are successfully updated (`state`) and the temperature and humidity values are being updated in the UI as the twin state is also being updated. 
 [web page 1](assets/attributes_authenticated.png)
 [web page 1](assets/features_authenticated.png)
 
+10. An authenticated sensor can only run the `RetreivePublishSensorData.py` sensor to update the DT with sensor values. If a user wantd to remove a device from the authenticated devices and wish to require a new authentication, a button is present in the  Web Application that deletes the data connection, remove "auth_cipher" and "auth_tag" Attributes from the DT and update the "state" attribute to "false" to come back to the initial set up. 
 
 ### Security considerations: 
 Please refer to my thesis paper for a detailed security analysis of the developed scheme. 
