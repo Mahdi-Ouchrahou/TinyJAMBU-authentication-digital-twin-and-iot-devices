@@ -1,0 +1,48 @@
+Case: tinyjambu128, with TLS
+decrypt_and_verify: 1.475333 ms
+update_attribute: 321.540667 ms
+create_connection: 415.777667 ms
+publish_authentication_result: 0.274667 ms
+perform_encryption: 19.654667 ms
+publish_authentication_data: 0.953667 ms
+
+Case: tinyjambu128, no TLS
+decrypt_and_verify: 2.282000 ms
+update_attribute: 455.511667 ms
+create_connection: 404.271333 ms
+publish_authentication_result: 0.098667 ms
+perform_encryption: 19.566000 ms
+publish_authentication_data: 0.965333 ms
+
+Case: tinyjambu192, with TLS
+decrypt_and_verify: 1.651000 ms
+update_attribute: 344.390000 ms
+create_connection: 266.489333 ms
+publish_authentication_result: 0.126000 ms
+perform_encryption: 22.388667 ms
+publish_authentication_data: 0.846333 ms
+
+Case: tinyjambu192, no TLS
+decrypt_and_verify: 1.518667 ms
+update_attribute: 387.343667 ms
+create_connection: 329.600333 ms
+publish_authentication_result: 0.149333 ms
+perform_encryption: 21.800000 ms
+publish_authentication_data: 1.085333 ms
+
+Case: tinyjambu256, with TLS
+decrypt_and_verify: 3.287667 ms
+update_attribute: 395.564000 ms
+create_connection: 327.935667 ms
+publish_authentication_result: 1.389333 ms
+perform_encryption: 24.991000 ms
+publish_authentication_data: 0.827000 ms
+
+Case: tinyjambu256, no TLS
+decrypt_and_verify: 3.638667 ms
+update_attribute: 763.846667 ms
+create_connection: 793.976667 ms
+publish_authentication_result: 15.270333 ms
+perform_encryption: 25.272000 ms
+publish_authentication_data: 0.884000 ms
+

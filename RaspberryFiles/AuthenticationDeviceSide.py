@@ -136,6 +136,8 @@ def main():
 
     # Create the MQTT client and set up the callbacks
     client = mqtt.Client()
+    client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/ca.crt')
+
     client.on_connect = on_connect
     client.on_publish = on_publish
     client.on_message = receive_authdata
@@ -196,6 +198,8 @@ def main():
     client.disconnect()
     print("Disconnected from MQTT broker.")
     print(f"Reconnecting to MQTT broker \"{mqtt_broker}\" to publish device authentication data")
+    client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/ca.crt')
+
     client.connect(mqtt_broker, 1883)
 
     # Publish the encrypted cipher and tag to "deviceAuthData" topic

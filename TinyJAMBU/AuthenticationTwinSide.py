@@ -191,13 +191,13 @@ def main():
         update_attribute("state", is_authentication_successful)
         create_connection()
         client = mqtt.Client()
-        
+        client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/ca.crt')
         client.on_connect = on_connect
         client.on_publish = on_publish
 
         # Connect to the MQTT broker
         print(f"Connecting to MQTT broker \"{mqtt_broker}\"...")
-        client.connect(mqtt_broker, 1883)
+        client.connect(mqtt_broker, 8883)
 
         # Prepare the auth_result message
         auth_result_message = {"auth_result": "true"}
@@ -216,12 +216,14 @@ def main():
         print("Authentication is not successful.")
         # Create the MQTT client and set up the callbacks
         client = mqtt.Client()
+        client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/ca.crt')
+
         client.on_connect = on_connect
         client.on_publish = on_publish
 
         # Connect to the MQTT broker
         print(f"Connecting to MQTT broker \"{mqtt_broker}\"...")
-        client.connect(mqtt_broker, 1883)
+        client.connect(mqtt_broker, 8883)
 
         # Prepare the auth_result message
         auth_result_message = {"auth_result": "false"}

@@ -1,0 +1,20 @@
+decrypt_and_verify: 0.001591 seconds
+update_attribute: 0.374089 seconds
+create_connection: 0.081507 seconds
+publish_authentication_result: 0.000198 seconds
+decrypt_and_verify: 0.001375 seconds
+update_attribute: 0.388862 seconds
+create_connection: 0.581822 seconds
+publish_authentication_result: 0.000156 seconds
+decrypt_and_verify: 0.001590 seconds
+update_attribute: 0.399080 seconds
+create_connection: 0.325472 seconds
+publish_authentication_result: 0.000094 seconds
+
+perform_encryption: 0.021627 seconds
+publish_authentication_data: 0.000981 seconds
+perform_encryption: 0.021572 seconds
+publish_authentication_data: 0.000940 seconds
+perform_encryption: 0.022201 seconds
+publish_authentication_data: 0.001335 seconds
+

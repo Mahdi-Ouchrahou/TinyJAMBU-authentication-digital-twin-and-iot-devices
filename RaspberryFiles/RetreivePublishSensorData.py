@@ -26,6 +26,9 @@ def extract_and_publish_sensor_data():
     topic = "datatopic"  # topic to publish the data
 
     client = mqtt.Client()
+    client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/server.crt')
+    
+
     client.on_connect = on_connect
     client.on_publish = on_publish
 
