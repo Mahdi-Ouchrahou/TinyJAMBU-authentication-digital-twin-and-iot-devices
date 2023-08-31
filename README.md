@@ -74,7 +74,7 @@ This section will go through the necessary setup in order to show through an exa
     2. Copy the `TinyJAMBU/` implementation directory to the Raspberry
         * Make sure to install the necessary packages for the implementation
         * Check that the TinyJAMU algorithm is properly working by running `python3 Tinyjambu.py`. When run, the program should generate a random key and nonce, use the algorithm to encrypt and decrypt an entered message and show the authentication status: 
-        ![TinyJAMBUtest](assets/tinyjambu_test.jpg)
+        ![TinyJAMBUtest](assets/tinyjambu_test.png)
     3. Assuming Python is installed, make sure the necessary packages for the DH11 sensor are installed. The library is called Adafruit Library. 
     4. Install Mosquitto MQTT broker and client and verify the installation: 
     ```
