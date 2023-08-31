@@ -6,29 +6,50 @@ import time
 from base64 import b64encode
 import requests
 import paho.mqtt.client as mqtt
+import psutil
+
 
 execution_times = {}
 
 def measure_execution_time(func):
     def wrapper(*args, **kwargs):
+        process = psutil.Process(os.getpid())  # Get the current process
+
+        # Measure CPU usage before the function call
+        start_cpu_percent = process.cpu_percent(interval=None)
+
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
         execution_time = end_time - start_time
-        execution_times[func.__name__] = execution_time
-        
-        # Write execution time to a log file
+
+        # Measure CPU usage after the function call
+        end_cpu_percent = process.cpu_percent(interval=None)
+
+        # Calculate average CPU usage during the function call
+        avg_cpu_percent = (start_cpu_percent + end_cpu_percent) / 2
+
+        execution_times[func.__name__] = {
+            "execution_time": execution_time,
+            "cpu_usage": avg_cpu_percent
+        }
+
+        # Write execution time and CPU usage to the log file
         with open("execution_times.log", "a") as log_file:
-            log_file.write(f"{func.__name__}: {execution_time:.6f} seconds\n")
-        
+            log_file.write(f"{func.__name__}: "
+                           f"Execution Time: {execution_time:.6f} seconds, "
+                           f"CPU Usage: {avg_cpu_percent:.2f}%\n")
+
         print(f"{func.__name__} execution time: {execution_time:.6f} seconds")
+        print(f"{func.__name__} CPU usage: {avg_cpu_percent:.2f}%")
         return result
     return wrapper
 
 
+
 @measure_execution_time
 def decrypt_and_verify(key, nonce, tag, cipher):
-    decrypted_result, is_verified = tinyjambu.decrypt(key, nonce, tag, b"", cipher)
+    decrypted_result, is_verified = tinyjambu.decrypt_192(key, nonce, tag, b"", cipher)
     return decrypted_result, is_verified
 
 def on_connect(client, userdata, flags, rc):
@@ -191,7 +212,7 @@ def main():
         update_attribute("state", is_authentication_successful)
         create_connection()
         client = mqtt.Client()
-        client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/ca.crt')
+        client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/TLS/ca.crt')
         client.on_connect = on_connect
         client.on_publish = on_publish
 
@@ -216,7 +237,7 @@ def main():
         print("Authentication is not successful.")
         # Create the MQTT client and set up the callbacks
         client = mqtt.Client()
-        client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/ca.crt')
+        client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/TLS/ca.crt')
 
         client.on_connect = on_connect
         client.on_publish = on_publish

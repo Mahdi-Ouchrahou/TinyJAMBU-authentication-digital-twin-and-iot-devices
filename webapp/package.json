@@ -1,5 +1,5 @@
 {
-  "name": "tinyjambu-authentication-scheme-for-digital-twins-and-iot",
+  "name": "lightweight-tinyjambu-authentication-scheme-for-digital-twins-and-iot",
   "version": "1.0.0",
   "description": "A webapp showing the authentication mechanism (based on tinyjambu lightweight algorithm) between a DH11 sensor and its digital twin in Eclipse Ditto.",
   "main": "index.html",

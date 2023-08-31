@@ -39,7 +39,7 @@ def plot_average_times(tinyjambu_variation, tls_times, no_tls_times):
     
     plt.figure(figsize=(10, 6))
     
-    # Reverse the order of processes and values
+    # Reverse the order of processes and values to match the chronology 
     processes.reverse()
     tls_values.reverse()
     no_tls_values.reverse()

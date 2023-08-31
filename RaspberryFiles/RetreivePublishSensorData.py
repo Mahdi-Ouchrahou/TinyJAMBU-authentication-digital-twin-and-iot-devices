@@ -3,7 +3,7 @@ import json
 import time
 import Adafruit_DHT
 
-#main function to extract sensor data from the dh11 sensor and send it to appropriate MQTT topic 
+#main function to extract sensor data from the dh11 sensor and send it to appro>
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected to MQTT broker successfully!")
@@ -21,14 +21,12 @@ def on_disconnect(client, userdata, rc):
 
 def extract_and_publish_sensor_data():  
 
-    broker_address = "localhost"  #the address here is localhost since the broker is hosted in the raspberry
-    broker_port = 1883  
+    broker_address = "192.168.0.174"  #the address here the address of the broker 
+    broker_port = 8883  #port for TLS
     topic = "datatopic"  # topic to publish the data
 
     client = mqtt.Client()
-    client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/server.crt')
-    
-
+    client.tls_set('/etc/mosquitto/ca_certificates/ca.crt')
     client.on_connect = on_connect
     client.on_publish = on_publish
 
@@ -54,3 +52,5 @@ def extract_and_publish_sensor_data():
 
     client.loop_stop()
     client.disconnect()
+
+

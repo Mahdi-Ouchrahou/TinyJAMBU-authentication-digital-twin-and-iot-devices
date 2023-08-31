@@ -5,12 +5,14 @@ import tinyjambu as tinyjambu
 import time
 import Adafruit_DHT
 from RetreivePublishSensorData import extract_and_publish_sensor_data
+import psutil
+import os
 
 execution_times = {}
 
 
-#mqtt address
-mqtt_broker = "localhost"
+#mqtt address (pi)
+mqtt_broker = "192.168.0.174"
 #mqtt topic for receiving key and nonce and receiving authentication result
 mqtt_topic_auth = "dtAuthData/sensors:authenticated"
 #mqtt topic to send generated cipher and tag from the device to the twin 
@@ -25,23 +27,41 @@ def wait_for_enter():
 
 def measure_execution_time(func):
     def wrapper(*args, **kwargs):
+        process = psutil.Process(os.getpid())  # Get the current process
+
+        # Measure CPU usage before the function call
+        start_cpu_percent = process.cpu_percent(interval=None)
+
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
         execution_time = end_time - start_time
-        execution_times[func.__name__] = execution_time
 
-        # Write execution time to a log file
+        # Measure CPU usage after the function call
+        end_cpu_percent = process.cpu_percent(interval=None)
+
+        # Calculate average CPU usage during the function call
+        avg_cpu_percent = (start_cpu_percent + end_cpu_percent) / 2
+
+        execution_times[func.__name__] = {
+            "execution_time": execution_time,
+            "cpu_usage": avg_cpu_percent
+        }
+
+        # Write execution time and CPU usage to the log file
         with open("execution_times.log", "a") as log_file:
-            log_file.write(f"{func.__name__}: {execution_time:.6f} seconds\n")
+            log_file.write(f"{func.__name__}: "
+                           f"Execution Time: {execution_time:.6f} seconds, "
+                           f"CPU Usage: {avg_cpu_percent:.2f}%\n")
 
         print(f"{func.__name__} execution time: {execution_time:.6f} seconds")
+        print(f"{func.__name__} CPU usage: {avg_cpu_percent:.2f}%")
         return result
     return wrapper
 
 @measure_execution_time
 def perform_encryption(key, nonce, data, text):
-    cipher, tag = tinyjambu.encrypt(key, nonce, data, text)
+    cipher, tag = tinyjambu.encrypt_192(key, nonce, data, text)
     return cipher, tag
 
 # Callback when a key is received
@@ -136,8 +156,7 @@ def main():
 
     # Create the MQTT client and set up the callbacks
     client = mqtt.Client()
-    client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/ca.crt')
-
+    client.tls_set('/etc/mosquitto/ca_certificates/ca.crt')
     client.on_connect = on_connect
     client.on_publish = on_publish
     client.on_message = receive_authdata
@@ -145,7 +164,7 @@ def main():
 
     # Connect to the MQTT broker and subscribe to the topic
     print(f"Connecting to MQTT broker \"{mqtt_broker}\"...")
-    client.connect(mqtt_broker, 1883)
+    client.connect(mqtt_broker, 8883)
     print(f"Subscribing and listening the topic \"{mqtt_topic_auth}\" for the shared key and nonce...")
     client.subscribe(mqtt_topic_auth)
 
@@ -198,9 +217,7 @@ def main():
     client.disconnect()
     print("Disconnected from MQTT broker.")
     print(f"Reconnecting to MQTT broker \"{mqtt_broker}\" to publish device authentication data")
-    client.tls_set('/home/hadak/Desktop/thesis/TinyJAMBU-authentication-digital-twin-and-iot-devices/ca.crt')
-
-    client.connect(mqtt_broker, 1883)
+    client.connect(mqtt_broker, 8883)
 
     # Publish the encrypted cipher and tag to "deviceAuthData" topic
     payload = {

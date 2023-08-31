@@ -491,7 +491,7 @@ class App {
 
     //function triggered when updating PSK 
     updatePSK() {
-        const pskLengthBytes = 16; // 128 bits
+        const pskLengthBytes = 24; // 192 bits
         const newPSKValue = this.generateRandomBytes(pskLengthBytes);
 
         // Convert the binary random bytes to a hexadecimal string

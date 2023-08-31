@@ -35,6 +35,10 @@ This project aims at providing a novel authentication scheme to authenticate IoT
 │   ├── AuthenticationTwinSide.py   #Main Python code that decrypts received cipher and confirms or denies authentication.
 │   ├── data_conn_source.json  #Configuration file to create a connection source for state update   
 │   └── data_conn_target.json  #Configuration file to create a connection target for state update 
+├── TLS/        #TinyJAMBU implementation directory
+│   ├── tls.sh #script to generate necessary files to enable TLS/SSL over MQTT using self-signed certificates
+│   ├── ca.crt    #certificate authority certificate 
+│   └── server.crt #server certificate
 ├── Webapp/           #Web application directory 
 │   ├── node_modules/ 
 │   ├── index.js      #Main web application code
